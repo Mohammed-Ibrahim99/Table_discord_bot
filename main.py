@@ -1,14 +1,53 @@
-# bot.py
-# import os
-#
-# import discord
-# from dotenv import load_dotenv
-#
-# load_dotenv()
-# TOKEN = os.getenv('DISCORD_TOKEN')
-# GUILD = os.getenv('DISCORD_GUILD')
-#
-#
+#bot.py
+import os
+import re
+
+import discord
+from discord.ext import commands
+from dotenv import load_dotenv
+from tabulate import tabulate
+
+load_dotenv()
+TOKEN = os.getenv('DISCORD_TOKEN')
+GUILD = os.getenv('DISCORD_GUILD')
+
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix='$', intents=intents)
+
+# # create data
+# data = [["Mavs", 99],
+#         ["Suns", 91],
+#         ["Spurs", 94],
+#         ["Nets", 88]]
+
+# # define header names
+# col_names = ["Team", "Points"]
+
+@bot.command()
+async def table(ctx, *args):
+    Text = ''.join(args)
+    headers = re.findall(r'headers:\(.*?\)', Text)
+    headers = "".join(headers).strip("headers:").strip("(").strip(")").split(",")
+
+    data = re.findall(r'data:\(.*?\)', Text)
+    data = "".join(data).strip("data:").strip("(").strip(")").split("],")
+    d = "]"
+    new_data = []
+    for data_without in range(len(data) - 1):
+        data[data_without] = data[data_without] + ']'
+
+    for data_str in range(len(data)):
+        split_data = data[data_str].strip("[").strip("]").split(",")
+        for elements in range(len(split_data)):
+            if split_data[elements].isnumeric():
+                split_data[elements] = int(split_data[elements])
+        new_data.append(split_data)
+        print(new_data)
+
+    await ctx.send(tabulate(new_data, headers=headers))
+
+
 # class MyClient(discord.Client):
 #     async def on_ready(self):
 #         print(f'Logged in as {self.user} (ID: {self.user.id})')
@@ -21,77 +60,81 @@
 #
 #         if message.content.startswith('!tableCreate'):
 #             await message.reply('Ready to create table', mention_author=True)
-#
-#
-# intents = discord.Intents.default()
-# intents.message_content = True
-#
+
+
 # client = MyClient(intents=intents)
 # client.run(TOKEN)
+bot.run(TOKEN)
 
-import numpy as np
-import matplotlib.pyplot as plt
-title_text = 'Loss by Disaster'
-footer_text = 'June 24, 2020'
-fig_background_color = 'skyblue'
-fig_border = 'steelblue'
-data =  [
-            [         'Freeze', 'Wind', 'Flood', 'Quake', 'Hail'],
-            [ '5 year',  66386, 174296,   75131,  577908,  32015],
-            ['10 year',  58230, 381139,   78045,   99308, 160454],
-            ['20 year',  89135,  80552,  152558,  497981, 603535],
-            ['30 year',  78415,  81858,  150656,  193263,  69638],
-            ['40 year', 139361, 331509,  343164,  781380,  52269],
-        ]
-# Pop the headers from the data array
-column_headers = data.pop(0)
-row_headers = [x.pop(0) for x in data]
-# Table data needs to be non-numeric text. Format the data
-# while I'm at it.
-cell_text = []
-for row in data:
-    cell_text.append([f'{x/1000:1.1f}' for x in row])
-# Get some lists of color specs for row and column headers
-rcolors = plt.cm.BuPu(np.full(len(row_headers), 0.1))
-ccolors = plt.cm.BuPu(np.full(len(column_headers), 0.1))
-# Create the figure. Setting a small pad on tight_layout
-# seems to better regulate white space. Sometimes experimenting
-# with an explicit figsize here can produce better outcome.
-plt.figure(linewidth=2,
-           edgecolor=fig_border,
-           facecolor=fig_background_color,
-           tight_layout={'pad':1},
-           #figsize=(5,3)
-          )
-# Add a table at the bottom of the axes
-the_table = plt.table(cellText=cell_text,
-                      rowLabels=row_headers,
-                      rowColours=rcolors,
-                      rowLoc='right',
-                      colColours=ccolors,
-                      colLabels=column_headers,
-                      loc='center')
-# Scaling is the only influence we have over top and bottom cell padding.
-# Make the rows taller (i.e., make cell y scale larger).
-the_table.scale(1, 1.5)
-# Hide axes
-ax = plt.gca()
-ax.get_xaxis().set_visible(False)
-ax.get_yaxis().set_visible(False)
-# Hide axes border
-plt.box(on=None)
-# Add title
-plt.suptitle(title_text)
-# Add footer
-plt.figtext(0.95, 0.05, footer_text, horizontalalignment='right', size=6, weight='light')
-# Force the figure to update, so backends center objects correctly within the figure.
-# Without plt.draw() here, the title will center on the axes and not the figure.
-plt.draw()
-# Create image. plt.savefig ignores figure edge and face colors, so map them.
-fig = plt.gcf()
-plt.savefig('pyplot-table-demo.png',
-            #bbox='tight',
-            edgecolor=fig.get_edgecolor(),
-            facecolor=fig.get_facecolor(),
-            dpi=150
-            )
+
+
+
+
+
+# import numpy as np
+# import matplotlib.pyplot as plt
+# title_text = 'Loss by Disaster'
+# footer_text = 'June 24, 2020'
+# fig_background_color = 'skyblue'
+# fig_border = 'steelblue'
+# data =  [
+#             [         'Freeze', 'Wind', 'Flood', 'Quake', 'Hail'],
+#             [ '5 year',  66386, 174296,   75131,  577908,  32015],
+#             ['10 year',  58230, 381139,   78045,   99308, 160454],
+#             ['20 year',  89135,  80552,  152558,  497981, 603535],
+#             ['30 year',  78415,  81858,  150656,  193263,  69638],
+#             ['40 year', 139361, 331509,  343164,  781380,  52269],
+#         ]
+# # Pop the headers from the data array
+# column_headers = data.pop(0)
+# row_headers = [x.pop(0) for x in data]
+# # Table data needs to be non-numeric text. Format the data
+# # while I'm at it.
+# cell_text = []
+# for row in data:
+#     cell_text.append([f'{x/1000:1.1f}' for x in row])
+# # Get some lists of color specs for row and column headers
+# rcolors = plt.cm.BuPu(np.full(len(row_headers), 0.1))
+# ccolors = plt.cm.BuPu(np.full(len(column_headers), 0.1))
+# # Create the figure. Setting a small pad on tight_layout
+# # seems to better regulate white space. Sometimes experimenting
+# # with an explicit figsize here can produce better outcome.
+# plt.figure(linewidth=2,
+#            edgecolor=fig_border,
+#            facecolor=fig_background_color,
+#            tight_layout={'pad':1},
+#            #figsize=(5,3)
+#           )
+# # Add a table at the bottom of the axes
+# the_table = plt.table(cellText=cell_text,
+#                       rowLabels=row_headers,
+#                       rowColours=rcolors,
+#                       rowLoc='right',
+#                       colColours=ccolors,
+#                       colLabels=column_headers,
+#                       loc='center')
+# # Scaling is the only influence we have over top and bottom cell padding.
+# # Make the rows taller (i.e., make cell y scale larger).
+# the_table.scale(1, 1.5)
+# # Hide axes
+# ax = plt.gca()
+# ax.get_xaxis().set_visible(False)
+# ax.get_yaxis().set_visible(False)
+# # Hide axes border
+# plt.box(on=None)
+# # Add title
+# plt.suptitle(title_text)
+# # Add footer
+# plt.figtext(0.95, 0.05, footer_text, horizontalalignment='right', size=6, weight='light')
+# # Force the figure to update, so backends center objects correctly within the figure.
+# # Without plt.draw() here, the title will center on the axes and not the figure.
+# plt.draw()
+# # Create image. plt.savefig ignores figure edge and face colors, so map them.
+# fig = plt.gcf()
+# plt.savefig('pyplot-table-demo.png',
+#             #bbox='tight',
+#             edgecolor=fig.get_edgecolor(),
+#             facecolor=fig.get_facecolor(),
+#             dpi=150
+#             )
+# plt.show()
